@@ -8,17 +8,20 @@ const posts = [{
   id: 1,
   title: "this is dummy post1",
   body: "This is dummy body1",
-  published: true
+  published: true,
+  author: 1
 }, {
   id: 2,
   title: "this is dummy post2",
   body: "This is dummy body2",
-  published: false
+  published: false,
+  author: 2
 }, {
   id: 3,
   title: "this is dummy post3",
   body: "This is dummy body3",
-  published: true
+  published: true,
+  author: 3
 }];
 
 const users = [{
@@ -31,7 +34,7 @@ const users = [{
   name: 'Sarah',
   email: 'sarah@yahoo.com',
 }, {
-  id: 1,
+  id: 3,
   name: 'Mike',
   email: 'mike@hotmail.com',
 }, ]
@@ -57,6 +60,7 @@ const typeDefs = `
     title: String!
     body: String!
     published: Boolean
+    author: User!
   }
 `
 
@@ -87,15 +91,21 @@ const resolvers = {
         return user.name.toLowerCase().includes(args.query.toLowerCase());
       })
     },
-    posts(parent, args){
-      if(!args.postQuery) {
+    posts(parent, args) {
+      if (!args.postQuery) {
         return posts;
       }
 
       return posts.filter((post) => {
         return post.title.toLocaleLowerCase().includes(args.postQuery) || post.body.toLocaleLowerCase().includes(args.postQuery)
       })
-      
+    }
+  },
+  Post: {
+    author(parent, args, ctx, info) {
+      return users.find( (user) => {
+        return user.id === parent.author
+      })
     }
   }
 }
