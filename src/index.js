@@ -2,6 +2,7 @@ const _ = require('lodash');
 const {
   GraphQLServer
 } = require('graphql-yoga');
+const uuidV4 = require('uuid/v4');
 
 
 const posts = [{
@@ -71,6 +72,11 @@ const typeDefs = `
     comments: [Comment!]!
   }
 
+  type Mutation {
+    createUser(name: String!, email: String!, age: Int): User!
+    createPost(title: String!, body: String!, published: Boolean!, author: ID!): Post!
+  }
+
   type User {
     id: ID!
     name: String!
@@ -135,6 +141,45 @@ const resolvers = {
     },
     comments(parent, args) {
       return comments
+    }
+  },
+  Mutation: {
+    createUser(parent, args, ctx, info){
+      const isEmailTaken = users.some((user) => user.email === args.email)
+
+      if(isEmailTaken) {
+        throw new Error('Email taken.')
+      }
+
+      const user = {
+        id: uuidV4(),
+        name: args.name,
+        email: args.email,
+        age: args.age
+      };
+
+      users.push(user);
+
+      return user
+    },
+    createPost(parent, args, ctx, info){
+      const isUserExists = users.some((user) => user.id === args.author)
+
+      if(!isUserExists){
+        throw new Error('User does not exist')
+      }
+
+      const newPost = {
+        id: uuidV4(),
+        title: args.title,
+        body: args.body,
+        published: args.published,
+        author: args.author
+      }
+
+      posts.push(newPost);
+
+      return newPost;
     }
   },
   Post: {
