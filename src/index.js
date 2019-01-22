@@ -6,58 +6,58 @@ const uuidV4 = require('uuid/v4');
 
 
 const posts = [{
-  id: 1,
+  id: '1',
   title: "this is dummy post1",
   body: "This is dummy body1",
   published: true,
-  author: 1
+  author: '1'
 }, {
-  id: 2,
+  id: '2',
   title: "this is dummy post2",
   body: "This is dummy body2",
   published: false,
-  author: 2
+  author: '2'
 }, {
-  id: 3,
+  id: '3',
   title: "this is dummy post3",
   body: "This is dummy body3",
   published: true,
-  author: 3
+  author: '3'
 }];
 
 const comments = [{
-  id: 1,
+  id: '1',
   text: 'this is comment1',
-  author: 1,
-  post: 1
-},{
-  id: 2,
+  author: '1',
+  post: '1'
+}, {
+  id: '2',
   text: 'this is comment2',
-  author: 1,
-  post: 1
-},{
-  id: 3,
+  author: '1',
+  post: '1'
+}, {
+  id: '3',
   text: 'this is comment3',
-  author: 2,
-  post: 2
-},{
-  id: 4,
+  author: '2',
+  post: '2'
+}, {
+  id: '4',
   text: 'this is comment4',
-  author: 3,
-  post: 3
-},]
+  author: '3',
+  post: '3'
+}, ]
 
 const users = [{
-  id: 1,
+  id: '1',
   name: 'Andrew',
   email: 'andrew@yahoo.com',
   age: 28
 }, {
-  id: 2,
+  id: '2',
   name: 'Sarah',
   email: 'sarah@yahoo.com',
 }, {
-  id: 3,
+  id: '3',
   name: 'Mike',
   email: 'mike@hotmail.com',
 }, ]
@@ -75,6 +75,7 @@ const typeDefs = `
   type Mutation {
     createUser(name: String!, email: String!, age: Int): User!
     createPost(title: String!, body: String!, published: Boolean!, author: ID!): Post!
+    createComment(text: String!, author: ID!, post: ID!): Comment!
   }
 
   type User {
@@ -144,10 +145,10 @@ const resolvers = {
     }
   },
   Mutation: {
-    createUser(parent, args, ctx, info){
+    createUser(parent, args, ctx, info) {
       const isEmailTaken = users.some((user) => user.email === args.email)
 
-      if(isEmailTaken) {
+      if (isEmailTaken) {
         throw new Error('Email taken.')
       }
 
@@ -162,10 +163,10 @@ const resolvers = {
 
       return user
     },
-    createPost(parent, args, ctx, info){
+    createPost(parent, args, ctx, info) {
       const isUserExists = users.some((user) => user.id === args.author)
 
-      if(!isUserExists){
+      if (!isUserExists) {
         throw new Error('User does not exist')
       }
 
@@ -180,35 +181,58 @@ const resolvers = {
       posts.push(newPost);
 
       return newPost;
+    },
+    createComment(parent, args, ctx, info) {
+      const isUserExists = users.some((user) => user.id === args.author)
+      const isPostExists = posts.some((post) => post.id === args.post)
+
+      if (!isUserExists) {
+        throw new Error('User does not exist')
+      }
+
+      if (!isPostExists) {
+        throw new Error('Post does not exist')
+      }
+
+      const newComment = {
+        id: uuidV4(),
+        text: args.text,
+        author: args.author,
+        post: args.post
+      }
+
+      comments.push(newComment);
+
+      return newComment;
     }
   },
   Post: {
     author(parent, args, ctx, info) {
-      return users.find( (user) => {
+      return users.find((user) => {
         return user.id === parent.author
       })
     },
     comments(parent, args, ctx, info) {
-      return comments.filter( (comment) => {
+      return comments.filter((comment) => {
         return comment.post === parent.id
       })
     }
   },
   User: {
     posts(parent, args, ctx, info) {
-      return posts.filter( (post) => {
+      return posts.filter((post) => {
         return post.author === parent.id
       })
     },
     comments(parent, args, ctx, info) {
-      return comments.filter( (comment) => {
+      return comments.filter((comment) => {
         return comment.author === parent.id
       })
     }
   },
   Comment: {
     author(parent, args, ctx, info) {
-      return users.find( (user) => {
+      return users.find((user) => {
         return user.id === parent.author
       })
     },
