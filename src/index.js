@@ -62,68 +62,6 @@ let users = [{
   email: 'mike@hotmail.com',
 }, ]
 
-// type definitions (schema)
-const typeDefs = `
-  type Query {
-    me: User
-    post: Post
-    users(query: String): [User!]!
-    posts(postQuery: String): [Post!]!
-    comments: [Comment!]!
-  }
-
-  type Mutation {
-    createUser(data: createUserInput): User!
-    deleteUser(id: ID!): User!
-    createPost(data: createPostInput): Post!
-    createComment(data: createCommentInput): Comment!
-  }
-
-  input createUserInput {
-    name: String!
-    email: String!
-    age: Int
-  }
-
-  input createPostInput {
-    title: String!
-    body: String!
-    published: Boolean!
-    author: ID!
-  }
-
-  input createCommentInput {
-    text: String!
-    author: ID!
-    post: ID!
-  }
-
-  type User {
-    id: ID!
-    name: String!
-    email: String!
-    age: Int
-    posts: [Post!]!
-    comments: [Comment!]!
-  }
-
-  type Post {
-    id: ID!
-    title: String!
-    body: String!
-    published: Boolean
-    author: User!
-    comments: [Comment!]!
-  }
-
-  type Comment {
-    id: ID!,
-    text: String!,
-    author: User!,
-    post: Post!
-  }
-`
-
 // Resolvers
 const resolvers = {
   Query: {
@@ -220,6 +158,18 @@ const resolvers = {
 
       return newPost;
     },
+    deletePost(parent, args, ctx, info) {
+      const postIndex = posts.findIndex((post) => post.id === args.id)
+
+      if(postIndex === -1) {
+        throw new Error('Post does not exist')
+      }
+
+      const deletedPosts = posts.splice(postIndex, 1);
+      comments = comments.filter(comment => comment.post !== args.id)
+
+      return deletedPosts[0]
+    },
     createComment(parent, args, ctx, info) {
       const isUserExists = users.some((user) => user.id === args.data.author)
       const isPostExists = posts.some((post) => post.id === args.data.post && post.published === true)
@@ -240,6 +190,17 @@ const resolvers = {
       comments.push(newComment);
 
       return newComment;
+    },
+    deleteComment(parent, args, ctx, info){
+      const commentIndex = comments.findIndex(comment => comment.id === args.id)
+
+      if(commentIndex === -1){
+        throw new Error('comment not found')
+      }
+
+      const deletedComments = comments.splice(commentIndex, 1);
+
+      return deletedComments[0];
     }
   },
   Post: {
@@ -281,7 +242,7 @@ const resolvers = {
 }
 
 const server = new GraphQLServer({
-  typeDefs,
+  typeDefs: './src/schema.graphql',
   resolvers
 });
 
