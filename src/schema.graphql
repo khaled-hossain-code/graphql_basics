@@ -18,6 +18,11 @@ type Mutation {
   deleteComment(id: ID!): Comment!
 }
 
+type Subscription {
+  count: Int!
+  comment(postId: String!): Comment!
+}
+
 input createUserInput {
   name: String!
   email: String!
@@ -50,7 +55,7 @@ input createCommentInput {
 }
 
 input updateCommentInput {
-  text: String
+  text: String 
 }
 
 type User {
