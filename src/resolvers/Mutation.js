@@ -78,7 +78,8 @@ const Mutation = {
     return user;
   },
   createPost(parent, args, {
-    db
+    db,
+    pubsub
   }, info) {
     const isUserExists = db.users.some((user) => user.id === args.data.author)
 
@@ -93,25 +94,35 @@ const Mutation = {
 
     db.posts.push(newPost);
 
+    if (args.data.published) {
+      pubsub.publish('post', {
+        post: newPost
+      })
+    }
     return newPost;
   },
-  updatePost(parent, args, { db} , info) {
-    const {id,data} = args;
+  updatePost(parent, args, {
+    db
+  }, info) {
+    const {
+      id,
+      data
+    } = args;
     const post = db.posts.find(post => post.id === id);
 
-    if(!post){
+    if (!post) {
       throw new Error('Post not found')
     }
 
-    if(typeof data.title === 'string') {
+    if (typeof data.title === 'string') {
       post.title = data.title
     }
-    
-    if(typeof data.body === 'string') {
+
+    if (typeof data.body === 'string') {
       post.body = data.body
     }
-    
-    if(typeof data.published === 'boolean') {
+
+    if (typeof data.published === 'boolean') {
       post.published = data.published
     }
     console.log(post)
@@ -152,19 +163,26 @@ const Mutation = {
     }
 
     db.comments.push(newComment);
-    pubsub.publish(`comment ${args.data.post}`, { comment: newComment })
+    pubsub.publish(`comment ${args.data.post}`, {
+      comment: newComment
+    })
 
     return newComment;
   },
-  updateComment(parent, args, {db}, info) {
-    const { id, data} = args;
+  updateComment(parent, args, {
+    db
+  }, info) {
+    const {
+      id,
+      data
+    } = args;
     const comment = db.comments.find(comment => comment.id === id);
 
-    if(!comment){
+    if (!comment) {
       throw new Error('Comment not found')
     }
 
-    if(typeof data.text === 'string'){
+    if (typeof data.text === 'string') {
       comment.text = data.text
     }
 
